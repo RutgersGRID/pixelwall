@@ -3,19 +3,28 @@
 # PixelWall
 > An IoT interactive pixel wall implementation
 
-This project is an implementation of an LED wall controlled through the internet with the use of node, vue.js, johnny5.js, and a microcontroller.
+This project is an implementation of an LED wall controlled through the internet with the use of node, vue.js, johnny-five.js, and a microcontroller.
 
 ## Installing / Getting started
 
-### TO DO
-A quick introduction of the minimal setup you need to get a hello world up &
-running.
+Using the fubarinoSD microcontroller, you must first run the StandardFirmataChipKITledstrip.ino file in order to create the protocol for communicating with the microcontroller using node and johnny-five. This only needs to be done once for setting up the microcontroller.
+
+Once the microcontroller is set up for communication, run the following:
 
 ```shell
-commands here
+npm init
 ```
 
-Here you should say what actually happens when you execute the code above.
+This should install all the dependencies required for the project to run.
+Now connect the fubarinoSD to your computer and run the listSerialPort.js file.
+
+```shell
+node listSerialPort.js
+```
+
+This tells node what port the microcontroller is connected to in order to send our commands.
+
+The microcontroller should now be setup to receive commands.
 
 ## Developing
 

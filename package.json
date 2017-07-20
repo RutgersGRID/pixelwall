@@ -24,6 +24,7 @@
   "dependencies": {
     "config": "^1.26.1",
     "johnny-five": "^0.11.3",
+    "prompt": "^1.0.0",
     "winston": "^2.3.1"
   }
 }

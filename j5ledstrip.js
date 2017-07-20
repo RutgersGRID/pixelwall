@@ -10,7 +10,7 @@ const Ledstrip = require('./ledstrip.js');
 
 const ledstrip = new Ledstrip(board);
 const PIN_LED1 = 1; // 1
-const PIN_BTN1 = 16; // 16
+const PIN_BTN1 = 23; // 16
 const MAX_PIXELS = 30;
 let button;
 let btnStatus;
