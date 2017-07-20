@@ -5,7 +5,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Runtime data
+# Runtime data #
 pids
 *.pid
 *.seed
@@ -32,9 +32,14 @@ bower_components
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/Release
 
+# Build generated
+dist/
+build/
+
 # Dependency directories
 node_modules/
 jspm_packages/
+bower_components/
 
 # Typescript v1 declaration files
 typings/
@@ -56,4 +61,30 @@ typings/
 
 # dotenv environment variables file
 .env
+.env.*
 
+### System Files ###
+.DS_Store
+
+# Windows thumbnail cache files
+Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent

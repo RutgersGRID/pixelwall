@@ -1,0 +1,29 @@
+{
+  "name": "pixelwall",
+  "version": "0.1.0",
+  "description": "An IoT interactive pixel wall implementation.",
+  "main": "init.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RutgersUniversityVirtualWorlds/pixelwall.git"
+  },
+  "keywords": [
+    "microcontroller",
+    "IoT",
+    "LED"
+  ],
+  "author": "Gibran Garcia <satimidus@gmail.com> (http://owlsketch.com)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/RutgersUniversityVirtualWorlds/pixelwall/issues"
+  },
+  "homepage": "https://github.com/RutgersUniversityVirtualWorlds/pixelwall#readme",
+  "dependencies": {
+    "config": "^1.26.1",
+    "johnny-five": "^0.11.3",
+    "winston": "^2.3.1"
+  }
+}

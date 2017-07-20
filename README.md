@@ -1,4 +1,4 @@
-![Pixel Wall Logo](./PixelWallLogo.png)
+![Pixel Wall Logo](./images/PixelWallLogo.png)
 
 # PixelWall
 > An IoT interactive pixel wall implementation
@@ -104,9 +104,9 @@ If the api is external, link to api documentation. If not describe your api incl
 
 ### TO DO
 Explaining what database (and version) has been used. Provide download links.
-Documents your database design and schemas, relations etc... 
+Documents your database design and schemas, relations etc...
 
 ## Licensing
 
-This project is licensed under the Apache License 2.0. 
-For a copy of this license please go [here](https://www.apache.org/licenses/LICENSE-2.0.html). 
+This project is licensed under the Apache License 2.0.
+For a copy of this license please go [here](https://www.apache.org/licenses/LICENSE-2.0.html).
