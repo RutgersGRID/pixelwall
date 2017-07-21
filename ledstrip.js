@@ -19,7 +19,6 @@ const packColor = function(red, green, blue) {
   const b3 = ((green & 0x03) << 5) | (blue >> 3);
   const b4 = (blue & 0x07) << 4;
   const data = [b1, b2, b3, b4];
-  // console.log(data);
   return data;
 };
 

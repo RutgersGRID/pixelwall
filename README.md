@@ -7,9 +7,13 @@ This project is an implementation of an LED wall controlled through the internet
 
 ## Installing / Getting started
 
-Using the fubarinoSD microcontroller, you must first run the StandardFirmataChipKITledstrip.ino file in order to create the protocol for communicating with the microcontroller using node and johnny-five. This only needs to be done once for setting up the microcontroller.
+In order to complete setup for the fubarinoSD microcontroller, you must compile the StandardFirmataChipKITLEDStrip.ino file using the Arduino IDE in order to create the protocol for communicating with the microcontroller using your computer. This only needs to be done once for setting up the microcontroller.
 
-Once the microcontroller is set up for communication, run the following:
+To do this, you must first [add the board manager for fubarinoSD via URL from within the Arduino IDE](http://chipkit.net/wiki/index.php?title=ChipKIT_core) and then install the chipKIT board manager. Then you must install the Adafruit Dotstar LED Library from Sketch->Include Library->Manage Libraries... Finally select your microcontroller from Tools->Board(ChipKIT), set the serial port it is connected to, and compile the StandardFirmataChipKITLEDStrip.ino file on the fubarinoSD.
+
+Note: you may want to configure the NUMPIXELS variable on StandardFirmataChipKITLEDStrip.ino to the number of LEDs in your LED strip before compiling.
+
+Once the microcontroller is set up for communication, run the following at the root of the repository:
 
 ```shell
 npm init
@@ -24,7 +28,7 @@ node listSerialPort.js
 
 This tells node what port the microcontroller is connected to in order to send our commands.
 
-The microcontroller should now be setup to receive commands.
+The microcontroller should now be setup to receive commands directly from node.
 
 ## Developing
 

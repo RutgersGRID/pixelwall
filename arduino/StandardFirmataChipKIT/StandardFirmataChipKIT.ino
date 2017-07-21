@@ -1,11 +1,10 @@
-
 /*
   Firmata is a generic protocol for communicating with microcontrollers
   from software on a host computer. It is intended to work with
   any host computer software package.
 
   To download a host software package, please click on the following link
-  to open the list of Firmata client libraries your default browser.
+  to open the list of Firmata client libraries in your default browser.
 
   https://github.com/firmata/arduino#firmata-client-libraries
 
@@ -14,7 +13,6 @@
   Copyright (C) 2009 Shigeru Kobayashi.  All rights reserved.
   Copyright (C) 2009-2016 Jeff Hoefs.  All rights reserved.
   Copyright (C) 2015 Brian Schmalz. All rights reserved.
-  Copyright (C) 2016 Rick Anderson. All rights reserved.
 
   This library is free software; you can redistribute it and/or
   modify it under the terms of the GNU Lesser General Public
@@ -23,28 +21,12 @@
 
   See file LICENSE.txt for further informations on licensing terms.
 
-  Last updated by Brian Schmalz: August 9th, 2015
+  Last updated October 16th, 2016
 */
-#include <SPI.h>
-#include <Adafruit_DotStar.h>
 
 #include <SoftPWMServo.h>  // Gives us PWM and Servo on every pin
 #include <Wire.h>
 #include <Firmata.h>
-
-#define CK_COMMAND 0x40 //64
-#define CK_PIXEL_SET 0x10 //16
-#define CK_PIXEL_SHOW 0x11 //17
-#define CK_PIXEL_CLEAR 0x12 //18
-#define CK_PIXEL_BRIGHTNESS 0x13 //19
-#define CK_PIXEL_ALERT_HIGH 0x14 //20
-#define CK_PIXEL_ALERT_LOW 0x15 //21
-
-#define NUMPIXELS 36 // Number of LEDs in strip
-#define RED  0xFF0000
-#define GREEN  0x00FF00
-#define BLUE  0x0000FF
-#define ICEBLUE 0x000055
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -52,19 +34,19 @@
 #define I2C_STOP_READING            B00011000
 #define I2C_READ_WRITE_MODE_MASK    B00011000
 #define I2C_10BIT_ADDRESS_MODE_MASK B00100000
+#define I2C_END_TX_MASK             B01000000
+#define I2C_STOP_TX                 1
+#define I2C_RESTART_TX              0
 #define I2C_MAX_QUERIES             8
 #define I2C_REGISTER_NOT_SPECIFIED  -1
 
 // the minimum interval for sampling analog input
-#define MINIMUM_SAMPLING_INTERVAL 10
+#define MINIMUM_SAMPLING_INTERVAL   1
 
 
 /*==============================================================================
-   GLOBAL VARIABLES
-  ============================================================================*/
-/* apa102c rgb led strip */
-Adafruit_DotStar strip = Adafruit_DotStar(NUMPIXELS,  DOTSTAR_BGR);
-
+ * GLOBAL VARIABLES
+ *============================================================================*/
 
 /* analog inputs */
 int analogInputsToReport = 0; // bitwise array to store pin reporting
@@ -74,9 +56,7 @@ byte reportPINs[TOTAL_PORTS];       // 1 = report this port, 0 = silence
 byte previousPINs[TOTAL_PORTS];     // previous 8 bits sent
 
 /* pins configuration */
-byte pinConfig[TOTAL_PINS];         // configuration of every pin
 byte portConfigInputs[TOTAL_PORTS]; // each bit: 1 = pin in INPUT, 0 = anything else
-int pinState[TOTAL_PINS];           // any value that has been written
 
 /* timer variables */
 unsigned long currentMillis;        // store the current value from millis()
@@ -88,12 +68,13 @@ struct i2c_device_info {
   byte addr;
   int reg;
   byte bytes;
+  byte stopTX;
 };
 
 /* for i2c read continuous more */
 i2c_device_info query[I2C_MAX_QUERIES];
 
-byte i2cRxData[32];
+byte i2cRxData[64];
 boolean isI2CEnabled = false;
 signed char queryIndex = -1;
 // default delay time between i2c read request and Wire.requestFrom()
@@ -106,6 +87,12 @@ byte detachedServoCount = 0;
 byte servoCount = 0;
 
 boolean isResetting = false;
+
+// Forward declare a few functions to avoid compiler errors with older versions
+// of the Arduino IDE.
+void setPinModeCallback(byte, int);
+void reportAnalogCallback(byte analogPin, int value);
+void sysexCallback(byte, byte, byte*);
 
 /* utility functions */
 void wireWrite(byte data)
@@ -127,8 +114,8 @@ byte wireRead(void)
 }
 
 /*==============================================================================
-   FUNCTIONS
-  ============================================================================*/
+ * FUNCTIONS
+ *============================================================================*/
 
 void attachServo(byte pin, int minPulse, int maxPulse)
 {
@@ -168,14 +155,38 @@ void detachServo(byte pin)
   servoPinMap[pin] = 255;
 }
 
-void readAndReportData(byte address, int theRegister, byte numBytes) {
+void enableI2CPins()
+{
+  byte i;
+  // is there a faster way to do this? would probaby require importing
+  // Arduino.h to get SCL and SDA pins
+  for (i = 0; i < TOTAL_PINS; i++) {
+    if (IS_PIN_I2C(i)) {
+      // mark pins as i2c so they are ignore in non i2c data requests
+      setPinModeCallback(i, PIN_MODE_I2C);
+    }
+  }
+
+  isI2CEnabled = true;
+
+  Wire.begin();
+}
+
+/* disable the i2c pins so they can be used for other functions */
+void disableI2CPins() {
+  isI2CEnabled = false;
+  // disable read continuous mode for all devices
+  queryIndex = -1;
+}
+
+void readAndReportData(byte address, int theRegister, byte numBytes, byte stopTX) {
   // allow I2C requests that don't require a register read
   // for example, some devices using an interrupt pin to signify new data available
   // do not always require the register read so upon interrupt you call Wire.requestFrom()
   if (theRegister != I2C_REGISTER_NOT_SPECIFIED) {
     Wire.beginTransmission(address);
     wireWrite((byte)theRegister);
-    Wire.endTransmission();
+    Wire.endTransmission(stopTX); // default = true
     // do not set a value of 0
     if (i2cReadDelayTime > 0) {
       // delay is necessary for some devices such as WiiNunchuck
@@ -217,13 +228,13 @@ void outputPort(byte portNumber, byte portValue, byte forceSend)
 }
 
 /* -----------------------------------------------------------------------------
-   check all the active digital inputs for change of state, then add any events
-   to the Serial output queue using Serial.print() */
+ * check all the active digital inputs for change of state, then add any events
+ * to the Serial output queue using Serial.print() */
 void checkDigitalInputs(void)
 {
   /* Using non-looping code allows constants to be given to readPort().
-     The compiler will apply substantial optimizations if the inputs
-     to readPort() are compile-time constants. */
+   * The compiler will apply substantial optimizations if the inputs
+   * to readPort() are compile-time constants. */
   if (TOTAL_PORTS > 0 && reportPINs[0]) outputPort(0, readPort(0, portConfigInputs[0]), false);
   if (TOTAL_PORTS > 1 && reportPINs[1]) outputPort(1, readPort(1, portConfigInputs[1]), false);
   if (TOTAL_PORTS > 2 && reportPINs[2]) outputPort(2, readPort(2, portConfigInputs[2]), false);
@@ -242,45 +253,11 @@ void checkDigitalInputs(void)
   if (TOTAL_PORTS > 15 && reportPINs[15]) outputPort(15, readPort(15, portConfigInputs[15]), false);
 }
 
-//----------------------------------
-/*
-   contact DOTSTAR strip
-   group the dotstar functions to act as a callback from firmata commands
-*/
-void dotstarHello() {
-  strip.clear();
-  uint32_t frame[NUMPIXELS];
-  for (int ii = 0; ii < NUMPIXELS; ii++) {
-    frame[ii] = BLUE; //initialize all to BLUE
-    strip.setPixelColor(ii, frame[ii]);
-  }
-  strip.show();
-}
-void dotstarAlertHigh() {
-  strip.clear();
-  uint32_t frame[NUMPIXELS];
-  for (int ii = 0; ii < NUMPIXELS; ii++) {
-    frame[ii] = RED; //initialize all to RED
-    strip.setPixelColor(ii, frame[ii]);
-  }
-  strip.show();
-}
-void dotstarAlertLow() {
-  strip.clear();
-  uint32_t frame[NUMPIXELS];
-  for (int ii = 0; ii < NUMPIXELS; ii++) {
-    frame[ii] = ICEBLUE; //initialize all to ICEBLUE
-    strip.setPixelColor(ii, frame[ii]);
-  }
-  strip.show();
-}
-
-
 // -----------------------------------------------------------------------------
 /* Sets a pin that is in Servo mode to a particular output value
-   (i.e. pulse width). Different boards may have different ways of
-   setting servo values, so putting it in a function keeps things cleaner.
-*/
+ * (i.e. pulse width). Different boards may have different ways of
+ * setting servo values, so putting it in a function keeps things cleaner.
+ */
 void servoWrite(byte pin, int value)
 {
   SoftPWMServoPWMWrite(PIN_TO_PWM(pin), value);
@@ -288,79 +265,96 @@ void servoWrite(byte pin, int value)
 
 // -----------------------------------------------------------------------------
 /* sets the pin mode to the correct state and sets the relevant bits in the
-   two bit-arrays that track Digital I/O and PWM status
-*/
+ * two bit-arrays that track Digital I/O and PWM status
+ */
 void setPinModeCallback(byte pin, int mode)
 {
-  if (pinConfig[pin] == IGNORE)
+  if (Firmata.getPinMode(pin) == PIN_MODE_IGNORE)
     return;
 
-  if (pinConfig[pin] == I2C && isI2CEnabled && mode != I2C) {
+  if (Firmata.getPinMode(pin) == PIN_MODE_I2C && isI2CEnabled && mode != PIN_MODE_I2C) {
     // disable i2c so pins can be used for other functions
     // the following if statements should reconfigure the pins properly
     disableI2CPins();
   }
-  if (IS_PIN_DIGITAL(pin) && mode != SERVO) {
+  if (IS_PIN_DIGITAL(pin) && mode != PIN_MODE_SERVO) {
     if (servoPinMap[pin] < MAX_SERVOS && servos[servoPinMap[pin]].attached()) {
       detachServo(pin);
     }
   }
   if (IS_PIN_ANALOG(pin)) {
-    reportAnalogCallback(PIN_TO_ANALOG(pin), mode == ANALOG ? 1 : 0); // turn on/off reporting
+    reportAnalogCallback(PIN_TO_ANALOG(pin), mode == PIN_MODE_ANALOG ? 1 : 0); // turn on/off reporting
   }
   if (IS_PIN_DIGITAL(pin)) {
-    if (mode == INPUT) {
+    if (mode == INPUT || mode == PIN_MODE_PULLUP) {
       portConfigInputs[pin / 8] |= (1 << (pin & 7));
     } else {
       portConfigInputs[pin / 8] &= ~(1 << (pin & 7));
     }
   }
-  pinState[pin] = 0;
+  Firmata.setPinState(pin, 0);
   switch (mode) {
-    case ANALOG:
+    case PIN_MODE_ANALOG:
       if (IS_PIN_ANALOG(pin)) {
         if (IS_PIN_DIGITAL(pin)) {
           pinMode(PIN_TO_DIGITAL(pin), INPUT);    // disable output driver
+#if ARDUINO <= 100
+          // deprecated since Arduino 1.0.1 - TODO: drop support in Firmata 2.6
           digitalWrite(PIN_TO_DIGITAL(pin), LOW); // disable internal pull-ups
+#endif
         }
-        pinConfig[pin] = ANALOG;
+        Firmata.setPinMode(pin, PIN_MODE_ANALOG);
       }
       break;
     case INPUT:
       if (IS_PIN_DIGITAL(pin)) {
         pinMode(PIN_TO_DIGITAL(pin), INPUT);    // disable output driver
+#if ARDUINO <= 100
+        // deprecated since Arduino 1.0.1 - TODO: drop support in Firmata 2.6
         digitalWrite(PIN_TO_DIGITAL(pin), LOW); // disable internal pull-ups
-        pinConfig[pin] = INPUT;
+#endif
+        Firmata.setPinMode(pin, INPUT);
+      }
+      break;
+    case PIN_MODE_PULLUP:
+      if (IS_PIN_DIGITAL(pin)) {
+        pinMode(PIN_TO_DIGITAL(pin), INPUT_PULLUP);
+        Firmata.setPinMode(pin, PIN_MODE_PULLUP);
+        Firmata.setPinState(pin, 1);
       }
       break;
     case OUTPUT:
       if (IS_PIN_DIGITAL(pin)) {
-        digitalWrite(PIN_TO_DIGITAL(pin), LOW); // disable PWM
+        if (Firmata.getPinMode(pin) == PIN_MODE_PWM) {
+          // Disable PWM if pin mode was previously set to PWM.
+          digitalWrite(PIN_TO_DIGITAL(pin), LOW);
+        }
         pinMode(PIN_TO_DIGITAL(pin), OUTPUT);
-        pinConfig[pin] = OUTPUT;
+        Firmata.setPinMode(pin, OUTPUT);
       }
       break;
-    case PWM:
+    case PIN_MODE_PWM:
       if (IS_PIN_PWM(pin)) {
         pinMode(PIN_TO_PWM(pin), OUTPUT);
         servoWrite(PIN_TO_PWM(pin), 0);
-        pinConfig[pin] = PWM;
+        Firmata.setPinMode(pin, PIN_MODE_PWM);
       }
       break;
-    case SERVO:
+    case PIN_MODE_SERVO:
       if (IS_PIN_DIGITAL(pin)) {
-        pinConfig[pin] = SERVO;
+        Firmata.setPinMode(pin, PIN_MODE_SERVO);
         if (servoPinMap[pin] == 255 || !servos[servoPinMap[pin]].attached()) {
           // pass -1 for min and max pulse values to use default values set
           // by Servo library
           attachServo(pin, -1, -1);
         }
       }
-    case I2C:
+      break;
+    case PIN_MODE_I2C:
       if (IS_PIN_I2C(pin)) {
         // mark the pin as i2c
         // the user must call I2C_CONFIG to enable I2C for a device
-        pinConfig[pin] = I2C;
+        Firmata.setPinMode(pin, PIN_MODE_I2C);
       }
       break;
     default:
@@ -369,19 +363,35 @@ void setPinModeCallback(byte pin, int mode)
   // TODO: save status to EEPROM here, if changed
 }
 
+/*
+ * Sets the value of an individual pin. Useful if you want to set a pin value but
+ * are not tracking the digital port state.
+ * Can only be used on pins configured as OUTPUT.
+ * Cannot be used to enable pull-ups on Digital INPUT pins.
+ */
+void setPinValueCallback(byte pin, int value)
+{
+  if (pin < TOTAL_PINS && IS_PIN_DIGITAL(pin)) {
+    if (Firmata.getPinMode(pin) == OUTPUT) {
+      Firmata.setPinState(pin, value);
+      digitalWrite(PIN_TO_DIGITAL(pin), value);
+    }
+  }
+}
+
 void analogWriteCallback(byte pin, int value)
 {
   if (pin < TOTAL_PINS) {
-    switch (pinConfig[pin]) {
-      case SERVO:
+    switch (Firmata.getPinMode(pin)) {
+      case PIN_MODE_SERVO:
         if (IS_PIN_DIGITAL(pin))
           servos[servoPinMap[pin]].write(value);
-        pinState[pin] = value;
+        Firmata.setPinState(pin, value);
         break;
-      case PWM:
+      case PIN_MODE_PWM:
         if (IS_PIN_PWM(pin))
           servoWrite(PIN_TO_PWM(pin), value);
-        pinState[pin] = value;
+        Firmata.setPinState(pin, value);
         break;
     }
   }
@@ -389,7 +399,7 @@ void analogWriteCallback(byte pin, int value)
 
 void digitalWriteCallback(byte port, int value)
 {
-  byte pin, lastPin, mask = 1, pinWriteMask = 0;
+  byte pin, lastPin, pinValue, mask = 1, pinWriteMask = 0;
 
   if (port < TOTAL_PORTS) {
     // create a mask of the pins on this port that are writable.
@@ -398,11 +408,21 @@ void digitalWriteCallback(byte port, int value)
     for (pin = port * 8; pin < lastPin; pin++) {
       // do not disturb non-digital pins (eg, Rx & Tx)
       if (IS_PIN_DIGITAL(pin)) {
-        // only write to OUTPUT and INPUT (enables pullup)
         // do not touch pins in PWM, ANALOG, SERVO or other modes
-        if (pinConfig[pin] == OUTPUT || pinConfig[pin] == INPUT) {
-          pinWriteMask |= mask;
-          pinState[pin] = ((byte)value & mask) ? 1 : 0;
+        if (Firmata.getPinMode(pin) == OUTPUT || Firmata.getPinMode(pin) == INPUT) {
+          pinValue = ((byte)value & mask) ? 1 : 0;
+          if (Firmata.getPinMode(pin) == OUTPUT) {
+            pinWriteMask |= mask;
+          } else if (Firmata.getPinMode(pin) == INPUT && pinValue == 1 && Firmata.getPinState(pin) != 1) {
+            // only handle INPUT here for backwards compatibility
+#if ARDUINO > 100
+            pinMode(pin, INPUT_PULLUP);
+#else
+            // only write to the INPUT pin to enable pullups if Arduino v1.0.0 or earlier
+            pinWriteMask |= mask;
+#endif
+          }
+          Firmata.setPinState(pin, pinValue);
         }
       }
       mask = mask << 1;
@@ -414,7 +434,7 @@ void digitalWriteCallback(byte port, int value)
 
 // -----------------------------------------------------------------------------
 /* sets bits in a bit array (int) to toggle the reporting of the analogIns
-*/
+ */
 //void FirmataClass::setAnalogPinReporting(byte pin, byte state) {
 //}
 void reportAnalogCallback(byte analogPin, int value)
@@ -454,73 +474,20 @@ void reportDigitalCallback(byte port, int value)
   // pins configured as analog
 }
 
-
-void ckCommand(byte command, byte argc, byte* argv) {
-  switch (command) {
-    case CK_PIXEL_CLEAR:
-      strip.clear();
-      break;
-    case CK_PIXEL_SHOW:
-      strip.show();
-      break;
-    case CK_PIXEL_SET:
-      // This code is directly from the CircuitPlayground
-      // Set a NeoPixel to the specified RGB color.
-      // Expect: 1 byte pixel number, 4 bytes pixel RGB value (as 7-bit bytes)
-
-      if (argc >= 5) {
-        // Parse out the pixel number and R, G, B bytes.
-        uint8_t pixel = argv[0] & 0x7F;
-        uint8_t r = (argv[1] << 1) | ((argv[2] & 0x7F) >> 6);  // Red = 7 bits from byte 4 and 1 bit from byte 5
-        uint8_t g = ((argv[2] & 0x3F) << 2) | (((argv[3]) & 0x7F) >> 5);  // Green = 6 bits from byte 5 and 2 bits from byte 6
-        uint8_t b = ((argv[3] & 0x1F) << 3) | (((argv[4]) & 0x7F) >> 4);  // Blue = 5 bits from byte 6 and 3 bits from byte 7
-        strip.setPixelColor(pixel, r, g, b);
-      }
-      break;
-    case CK_PIXEL_BRIGHTNESS:
-      uint8_t data;
-      data = argv[0] & 0x7F;
-      strip.setBrightness(data);
-      break;
-    case CK_PIXEL_ALERT_LOW:
-      dotstarAlertLow();
-      break;
-    case CK_PIXEL_ALERT_HIGH:
-      dotstarAlertHigh();
-      break;
-  }
-}
-
-void printPixels(int cc) {
-  for (int ii = 0; ii < cc; ii++)
-  {
-    //count argc in pixels
-    strip.setPixelColor(ii, 0x00FF00);
-  }
-  strip.show();
-}
 /*==============================================================================
-   SYSEX-BASED commands
-  ============================================================================*/
+ * SYSEX-BASED commands
+ *============================================================================*/
 
 void sysexCallback(byte command, byte argc, byte *argv)
 {
   byte mode;
+  byte stopTX;
   byte slaveAddress;
   byte data;
   int slaveRegister;
   unsigned int delayTime;
 
   switch (command) {
-    case CK_COMMAND:
-      if (argc < 1) {
-        dotstarHello();
-        return;
-      }
-      else {
-        ckCommand(argv[0], argc - 1, argv + 1);
-        break;
-      }
     case I2C_REQUEST:
       mode = argv[1] & I2C_READ_WRITE_MODE_MASK;
       if (argv[1] & I2C_10BIT_ADDRESS_MODE_MASK) {
@@ -529,6 +496,15 @@ void sysexCallback(byte command, byte argc, byte *argv)
       }
       else {
         slaveAddress = argv[0];
+      }
+
+      // need to invert the logic here since 0 will be default for client
+      // libraries that have not updated to add support for restart tx
+      if (argv[1] & I2C_END_TX_MASK) {
+        stopTX = I2C_RESTART_TX;
+      }
+      else {
+        stopTX = I2C_STOP_TX; // default
       }
 
       switch (mode) {
@@ -552,7 +528,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
             slaveRegister = I2C_REGISTER_NOT_SPECIFIED;
             data = argv[2] + (argv[3] << 7);  // bytes to read
           }
-          readAndReportData(slaveAddress, (int)slaveRegister, data);
+          readAndReportData(slaveAddress, (int)slaveRegister, data, stopTX);
           break;
         case I2C_READ_CONTINUOUSLY:
           if ((queryIndex + 1) >= I2C_MAX_QUERIES) {
@@ -574,6 +550,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
           query[queryIndex].addr = slaveAddress;
           query[queryIndex].reg = slaveRegister;
           query[queryIndex].bytes = data;
+          query[queryIndex].stopTX = stopTX;
           break;
         case I2C_STOP_READING:
           byte queryIndexToSkip;
@@ -582,6 +559,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
           if (queryIndex <= 0) {
             queryIndex = -1;
           } else {
+            queryIndexToSkip = 0;
             // if read continuous mode is enabled for multiple devices,
             // determine which device to stop reading and remove it's data from
             // the array, shifiting other array data to fill the space
@@ -597,6 +575,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
                 query[i].addr = query[i + 1].addr;
                 query[i].reg = query[i + 1].reg;
                 query[i].bytes = query[i + 1].bytes;
+                query[i].stopTX = query[i + 1].stopTX;
               }
             }
             queryIndex--;
@@ -630,7 +609,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
             detachServo(pin);
           }
           attachServo(pin, minPulse, maxPulse);
-          setPinModeCallback(pin, SERVO);
+          setPinModeCallback(pin, PIN_MODE_SERVO);
         }
       }
       break;
@@ -659,23 +638,25 @@ void sysexCallback(byte command, byte argc, byte *argv)
         if (IS_PIN_DIGITAL(pin)) {
           Firmata.write((byte)INPUT);
           Firmata.write(1);
+          Firmata.write((byte)PIN_MODE_PULLUP);
+          Firmata.write(1);
           Firmata.write((byte)OUTPUT);
           Firmata.write(1);
         }
         if (IS_PIN_ANALOG(pin)) {
-          Firmata.write(ANALOG);
+          Firmata.write(PIN_MODE_ANALOG);
           Firmata.write(10); // 10 = 10-bit resolution
         }
         if (IS_PIN_PWM(pin)) {
-          Firmata.write(PWM);
-          Firmata.write(8); // 8 = 8-bit resolution
+          Firmata.write(PIN_MODE_PWM);
+          Firmata.write(DEFAULT_PWM_RESOLUTION);
         }
         if (IS_PIN_DIGITAL(pin)) {
-          Firmata.write(SERVO);
+          Firmata.write(PIN_MODE_SERVO);
           Firmata.write(14);
         }
         if (IS_PIN_I2C(pin)) {
-          Firmata.write(I2C);
+          Firmata.write(PIN_MODE_I2C);
           Firmata.write(1);  // TODO: could assign a number to map to SCL or SDA
         }
         Firmata.write(127);
@@ -689,10 +670,10 @@ void sysexCallback(byte command, byte argc, byte *argv)
         Firmata.write(PIN_STATE_RESPONSE);
         Firmata.write(pin);
         if (pin < TOTAL_PINS) {
-          Firmata.write((byte)pinConfig[pin]);
-          Firmata.write((byte)pinState[pin] & 0x7F);
-          if (pinState[pin] & 0xFF80) Firmata.write((byte)(pinState[pin] >> 7) & 0x7F);
-          if (pinState[pin] & 0xC000) Firmata.write((byte)(pinState[pin] >> 14) & 0x7F);
+          Firmata.write(Firmata.getPinMode(pin));
+          Firmata.write((byte)Firmata.getPinState(pin) & 0x7F);
+          if (Firmata.getPinState(pin) & 0xFF80) Firmata.write((byte)(Firmata.getPinState(pin) >> 7) & 0x7F);
+          if (Firmata.getPinState(pin) & 0xC000) Firmata.write((byte)(Firmata.getPinState(pin) >> 14) & 0x7F);
         }
         Firmata.write(END_SYSEX);
       }
@@ -708,33 +689,9 @@ void sysexCallback(byte command, byte argc, byte *argv)
   }
 }
 
-void enableI2CPins()
-{
-  byte i;
-  // is there a faster way to do this? would probaby require importing
-  // Arduino.h to get SCL and SDA pins
-  for (i = 0; i < TOTAL_PINS; i++) {
-    if (IS_PIN_I2C(i)) {
-      // mark pins as i2c so they are ignore in non i2c data requests
-      setPinModeCallback(i, I2C);
-    }
-  }
-
-  isI2CEnabled = true;
-
-  Wire.begin();
-}
-
-/* disable the i2c pins so they can be used for other functions */
-void disableI2CPins() {
-  isI2CEnabled = false;
-  // disable read continuous mode for all devices
-  queryIndex = -1;
-}
-
 /*==============================================================================
-   SETUP()
-  ============================================================================*/
+ * SETUP()
+ *============================================================================*/
 
 void systemResetCallback()
 {
@@ -756,8 +713,8 @@ void systemResetCallback()
     // otherwise, pins default to digital output
     if (IS_PIN_ANALOG(i)) {
       // turns off pullup, configures everything
-      setPinModeCallback(i, ANALOG);
-    } else {
+      setPinModeCallback(i, PIN_MODE_ANALOG);
+    } else if (IS_PIN_DIGITAL(i)) {
       // sets the output to 0, configures portConfigInputs
       setPinModeCallback(i, OUTPUT);
     }
@@ -771,28 +728,27 @@ void systemResetCallback()
   servoCount = 0;
 
   /* send digital inputs to set the initial state on the host computer,
-     since once in the loop(), this firmware will only send on change */
+   * since once in the loop(), this firmware will only send on change */
   /*
-    TODO: this can never execute, since no pins default to digital input
+  TODO: this can never execute, since no pins default to digital input
         but it will be needed when/if we support EEPROM stored config
-    for (byte i=0; i < TOTAL_PORTS; i++) {
+  for (byte i=0; i < TOTAL_PORTS; i++) {
     outputPort(i, readPort(i, portConfigInputs[i]), true);
-    }
+  }
   */
   isResetting = false;
 }
 
 void setup()
 {
-
-
-  Firmata.setFirmwareVersion(FIRMATA_MAJOR_VERSION, FIRMATA_MINOR_VERSION);
+  Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
 
   Firmata.attach(ANALOG_MESSAGE, analogWriteCallback);
   Firmata.attach(DIGITAL_MESSAGE, digitalWriteCallback);
   Firmata.attach(REPORT_ANALOG, reportAnalogCallback);
   Firmata.attach(REPORT_DIGITAL, reportDigitalCallback);
   Firmata.attach(SET_PIN_MODE, setPinModeCallback);
+  Firmata.attach(SET_DIGITAL_PIN_VALUE, setPinValueCallback);
   Firmata.attach(START_SYSEX, sysexCallback);
   Firmata.attach(SYSTEM_RESET, systemResetCallback);
 
@@ -804,22 +760,21 @@ void setup()
   Firmata.begin(57600);
 #endif
   systemResetCallback();  // reset to default config
-  strip.begin();
 }
 
 /*==============================================================================
-   LOOP()
-  ============================================================================*/
+ * LOOP()
+ *============================================================================*/
 void loop()
 {
   byte pin, analogPin;
 
   /* DIGITALREAD - as fast as possible, check for changes and output them to the
-     FTDI buffer using Serial.print()  */
+   * FTDI buffer using Serial.print()  */
   checkDigitalInputs();
 
   /* STREAMREAD - processing incoming messagse as soon as possible, while still
-     checking digital inputs.  */
+   * checking digital inputs.  */
   while (Firmata.available())
     Firmata.processInput();
 
@@ -830,7 +785,7 @@ void loop()
     previousMillis += samplingInterval;
     /* ANALOGREAD - do all analogReads() at the configured sampling interval */
     for (pin = 0; pin < TOTAL_PINS; pin++) {
-      if (IS_PIN_ANALOG(pin) && pinConfig[pin] == ANALOG) {
+      if (IS_PIN_ANALOG(pin) && Firmata.getPinMode(pin) == PIN_MODE_ANALOG) {
         analogPin = PIN_TO_ANALOG(pin);
         if (analogInputsToReport & (1 << analogPin)) {
           Firmata.sendAnalog(analogPin, analogRead(analogPin));
@@ -840,7 +795,7 @@ void loop()
     // report i2c data for all device with read continuous mode enabled
     if (queryIndex > -1) {
       for (byte i = 0; i < queryIndex + 1; i++) {
-        readAndReportData(query[i].addr, query[i].reg, query[i].bytes);
+        readAndReportData(query[i].addr, query[i].reg, query[i].bytes, query[i].stopTX);
       }
     }
   }
