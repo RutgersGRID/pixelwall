@@ -69,22 +69,13 @@ make install
 Here again you should state what actually happens when the code above gets
 executed.
 
-### Deploying / Publishing
-give instructions on how to build and release a new version
-In case there's some step you have to take that publishes this project to a
-server, this is the right time to state it.
-
-```shell
-packagemanager deploy your-project -s server.com -u username -p password
-```
-
-And again you'd need to tell what the previous code actually does.
-
 ## Versioning
 
-### TO DO
-We can maybe use [SemVer](http://semver.org/) for versioning. For the versions available, see the [link to tags on this repository](/tags).
-
+We use [SemVer](http://semver.org/) for versioning.
+Roughly, the version number represents MAJOR.MINOR.PATCH where an increment is
+    MAJOR version when you make incompatible API changes,
+    MINOR version when you add functionality in a backwards-compatible manner, and
+    PATCH version when you make backwards-compatible bug fixes.
 
 ## Configuration
 
@@ -106,18 +97,6 @@ Give an example
 
 ### TO DO
 Explain your code style and show how to check it.
-
-## Api Reference
-
-### TO DO
-If the api is external, link to api documentation. If not describe your api including authentication methods as well as explaining all the endpoints with their required parameters.
-
-
-## Database
-
-### TO DO
-Explaining what database (and version) has been used. Provide download links.
-Documents your database design and schemas, relations etc...
 
 ## Licensing
 
