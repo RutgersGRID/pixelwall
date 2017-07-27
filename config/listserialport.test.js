@@ -9,7 +9,6 @@ test('should retrieve current port and IP', function(t) {
       //if file exists, get port+ip values
       t.notEqual(null, configSetUp.getPort(config));
       t.notEqual(null, configSetUp.getIP(config));
-
     }
     else {
       //no config file, run prompt and make one

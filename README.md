@@ -20,10 +20,10 @@ npm init
 ```
 
 This should install all the dependencies required for the project to run.
-Now connect the fubarinoSD to your computer and run the listSerialPort.js file.
+Now connect the fubarinoSD to your computer and run the setup.js file.
 
 ```shell
-node listSerialPort.js
+node ./config/setup.js
 ```
 
 This tells node what port the microcontroller is connected to in order to send our commands.

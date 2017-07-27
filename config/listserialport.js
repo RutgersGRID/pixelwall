@@ -1,5 +1,6 @@
-const fs = require('fs');
 const fileExists = require('file-exists');
+const prompt = require('prompt');
+const fs = require('fs');
 
 module.exports = {
   existsConfig: function(callback) {
@@ -7,9 +8,35 @@ module.exports = {
       callback(err,exists);
     })
   },
-  makeConfig: function(input) {
-    fs.writeFile('/config/default.json', input, function(err) {
-      if(err) throw err;
+  updateConfigFile: function(port, callback) {
+    let file = require('./default.json');
+    file.port = port;
+
+    console.log('Writing to config/default.json');
+    fs.writeFile('./config/default.json', JSON.stringify(file, null, 2), function(err) {
+      if(err) {
+        callback(err);
+      }
+      else {
+        console.log('Done');
+        return;
+      }
+    });
+  },
+  createConfigFile: function(port, callback) {
+    let file = {};
+    file.port = port;
+    file.ip = '';
+
+    console.log('Creating config/default.json');
+    fs.writeFile('./config/default.json', JSON.stringify(file, null, 2), function(err) {
+      if(err) {
+        callback(err);
+      }
+      else {
+        console.log('Done');
+        return;
+      }
     });
   },
   getPort: function(configFile) {
@@ -30,32 +57,39 @@ module.exports = {
       return '';
     }
   },
-  getConfirmation: function()
-};
+  startPrompt: function() {
+    prompt.start();
+    return;
+  },
+  getConfirmationPrompt: function(callback) {
+    let confirmation = {
+      name:'confirmation',
+      validator: /^[Y|y](es|ES)?$|^[N|n][O|o]?$/,
+      warning: 'Must respond yes(Y) or no(N)'
+    };
 
-/*const config = require('config');
-const fs = require('fs');
-const serialport = require('serialport');
-const prompt = require('prompt');
+    prompt.get(confirmation, function(err, result) {
+      callback(err, result);
+    });
+  },
+  getPortPrompt: function(numPorts, callback) {
+    let re = new RegExp('^[0-' + (numPorts-1).toString() + ']$');
 
-let myConfig = {};
+    let portNum = {
+      name: 'num',
+      type: 'integer',
+      warning: 'Select a number'
+    };
 
-prompt.start();
-// list serial ports:
-console.log('Select serial port by typing it\'s number into the prompt.');
-serialport.list(function(err, ports) {
-  ports.forEach(function(port, i) {
-    console.log('(%d): %s', i, port.comName);
-  });
-  prompt.get(['num'], function(err, result) {
-    console.log('Port Selected: %s', ports[result.num].comName);
-    myConfig.port = ports[result.num].comName;
-    fs.writeFile("./config/default.json", JSON.stringify(myConfig), function(err) {
-      if (err) {
-        return console.log(err);
+    prompt.get(portNum, function(err, result) {
+      //test result for regex satisfaction
+      if(re.test(result.num)){
+        callback(err, result);
+      }
+      else {
+        console.log('Please choose a number from the list');
+        module.exports.getPortPrompt(numPorts, callback);
       }
     });
-    // console.log('Port Selected: %s, ', portName);
-  });
-});
-*/
+  }
+};
