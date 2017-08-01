@@ -254,7 +254,6 @@ void dotstarHello() {
     frame[ii] = BLUE; //initialize all to BLUE
     strip.setPixelColor(ii, frame[ii]);
   }
-  strip.show();
 }
 void dotstarAlertHigh() {
   strip.clear();
@@ -263,7 +262,6 @@ void dotstarAlertHigh() {
     frame[ii] = RED; //initialize all to RED
     strip.setPixelColor(ii, frame[ii]);
   }
-  strip.show();
 }
 void dotstarAlertLow() {
   strip.clear();
@@ -272,7 +270,6 @@ void dotstarAlertLow() {
     frame[ii] = ICEBLUE; //initialize all to ICEBLUE
     strip.setPixelColor(ii, frame[ii]);
   }
-  strip.show();
 }
 
 
@@ -460,6 +457,8 @@ void ckCommand(byte command, byte argc, byte* argv) {
     case CK_PIXEL_CLEAR:
       strip.clear();
       break;
+    //all other commands edit pixel values, CK_PIXEL_SHOW must be called
+    //for all commands in order to push the values to the led strip.
     case CK_PIXEL_SHOW:
       strip.show();
       break;
@@ -491,6 +490,8 @@ void ckCommand(byte command, byte argc, byte* argv) {
   }
 }
 
+//What does this do exactly? I see no reference in this file, or any other
+//higher level files.
 void printPixels(int cc) {
   for (int ii = 0; ii < cc; ii++)
   {
