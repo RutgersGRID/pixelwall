@@ -24,45 +24,47 @@ const packColor = function(red, green, blue) {
 
 const Ledstrip = function(board) {
   this.board = board;
-
   /*
    * Configure sysex access to led strip.
    */
-
-  Ledstrip.prototype.hello = function() {
-    board.sysexCommand([CK_COMMAND]);
-    console.log('ledstrip hello');
-  };
+  //clear entire LED strip
   Ledstrip.prototype.clear = function() {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_CLEAR]);
     console.log('ledstrip clear');
   };
+  //displays current state of pixels on strip
   Ledstrip.prototype.show = function() {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_SHOW]);
     console.log('ledstrip show');
   };
+  //sets the color of a single pixel
   Ledstrip.prototype.setPixelColor = function(pixel, red, green, blue) {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_SET, pixel].concat(packColor(red, green, blue)));
     console.log('ledstrip setPixelColor: r %d, g: %d, b:%d', red, green, blue);
   };
-  Ledstrip.prototype.setClearShowPixelColor = function(pixel, red, green, blue) {
-    board.sysexCommand([CK_COMMAND, CK_PIXEL_CLEAR]);
-    board.sysexCommand([CK_COMMAND, CK_PIXEL_SET, pixel].concat(packColor(red, green, blue)));
-    board.sysexCommand([CK_COMMAND, CK_PIXEL_SHOW]);
-    console.log('ledstrip setPixelColor: r %d, g: %d, b:%d', red, green, blue);
+  //clears the color of a single pixel
+  Ledstrip.prototype.clearPixelColor = function(pixel) {
+    board.sysexCommand([CK_COMMAND, CK_PIXEL_SET, pixel].concat(packColor(0, 0, 0)));
+    console.log('ledstrip clearPixelColor: pixel #%d', pixel);
   };
+  //data is a unsigned int accepting vals between 0-255 for brightness
   Ledstrip.prototype.setBrightness = function(data) {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_BRIGHTNESS, data]);
     console.log('ledstrip brightness');
   };
+  //set all lights to 0x0000FF Blue
+  Ledstrip.prototype.hello = function() {
+    board.sysexCommand([CK_COMMAND]);
+    console.log('ledstrip hello');
+  };
+  //set all lights to ICEBLUE 0x000055
   Ledstrip.prototype.alertLOW = function() {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_ALERT_LOW]);
-    board.sysexCommand([CK_COMMAND, CK_PIXEL_SHOW]);
     console.log('ledstrip alert low');
   };
+  //set all lights to RED 0xFF0000
   Ledstrip.prototype.alertHIGH = function() {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_ALERT_HIGH]);
-    board.sysexCommand([CK_COMMAND, CK_PIXEL_SHOW]);
     console.log('ledstrip alert high');
   };
 };

@@ -1,4 +1,7 @@
 {
   "port": "COM6",
-  "ip": ""
+  "ip": "",
+  "height": "5",
+  "width": "5",
+  "numpixels": "25"
 }
