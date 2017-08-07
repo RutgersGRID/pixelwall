@@ -8,9 +8,11 @@ module.exports = {
       callback(err,exists);
     })
   },
-  updateConfigFile: function(port, callback) {
+  updateConfigFile: function(port, dimmensions, callback) {
     let file = require('./default.json');
     file.port = port;
+    file.width = dimmensions.width;
+    file.height = dimmensions.height;
 
     console.log('Writing to config/default.json');
     fs.writeFile('./config/default.json', JSON.stringify(file, null, 2), function(err) {
@@ -23,10 +25,12 @@ module.exports = {
       }
     });
   },
-  createConfigFile: function(port, callback) {
+  createConfigFile: function(port, dimmensions, callback) {
     let file = {};
     file.port = port;
     file.ip = '';
+    file.width = dimmensions.width;
+    file.height = dimmensions.height;
 
     console.log('Creating config/default.json');
     fs.writeFile('./config/default.json', JSON.stringify(file, null, 2), function(err) {
@@ -61,18 +65,8 @@ module.exports = {
     prompt.start();
     return;
   },
-  getConfirmationPrompt: function(callback) {
-    let confirmation = {
-      name:'confirmation',
-      validator: /^[Y|y](es|ES)?$|^[N|n][O|o]?$/,
-      warning: 'Must respond yes(Y) or no(N)'
-    };
-
-    prompt.get(confirmation, function(err, result) {
-      callback(err, result);
-    });
-  },
   getPortPrompt: function(numPorts, callback) {
+    //to ensure selected number is within bounds of available ports
     let re = new RegExp('^[0-' + (numPorts-1).toString() + ']$');
 
     let portNum = {
@@ -90,6 +84,24 @@ module.exports = {
         console.log('Please choose a number from the list');
         module.exports.getPortPrompt(numPorts, callback);
       }
+    });
+  },
+  getWidthHeightPrompt: function(callback) {
+    let dimmensions = {
+      properties: {
+        width: {
+          type: 'integer',
+          warning: 'Type in a number'
+        },
+        height: {
+          type: 'integer',
+          warning: 'Type in a number'
+        }
+      }
+    };
+
+    prompt.get(dimmensions, function(err, result) {
+      callback(err, result);
     });
   }
 };

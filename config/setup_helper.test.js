@@ -1,14 +1,14 @@
 const test = require("tape");
-const configSetUp = require("./listserialport.js");
+const helper = require("./setup_helper.js");
 
 const config = require('config');
 
 test('should retrieve current port and IP', function(t) {
-  configSetUp.existsConfig(function(err, exists) {
+  helper.existsConfig(function(err, exists) {
     if(exists) {
       //if file exists, get port+ip values
-      t.notEqual(null, configSetUp.getPort(config));
-      t.notEqual(null, configSetUp.getIP(config));
+      t.notEqual(null, helper.getPort(config));
+      t.notEqual(null, helper.getIP(config));
     }
     else {
       //no config file, run prompt and make one
