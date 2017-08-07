@@ -3,7 +3,7 @@
 # PixelWall
 > An IoT interactive pixel wall implementation
 
-This project is an implementation of an LED wall controlled through the internet with the use of node, vue.js, johnny-five.js, and a microcontroller.
+This project is an implementation of an LED wall controlled through the internet with the use of node, vue.js, johnny-five.js, and a microcontroller. This repository specifically is the code required for the physical microcontroller and LED strip in order to properly receive and display images from the server.
 
 ## Installing / Getting started
 
@@ -23,80 +23,19 @@ This should install all the dependencies required for the project to run.
 Now connect the fubarinoSD to your computer and run the setup.js file.
 
 ```shell
-node ./config/setup.js
+node ./setup.js
 ```
 
 This tells node what port the microcontroller is connected to in order to send our commands.
 
 The microcontroller should now be setup to receive commands directly from node.
 
-## Developing
-
-### TO DO
-### Built With
-List main libraries, frameworks used including versions (React, Angular etc...)
-
-
-### Prerequisites
-
-What is needed to set up the dev environment. For instance, global dependencies or any other tools. include download links.
-
-
-### Setting up Dev
-
-Here's a brief intro about what a developer must do in order to start developing
-the project further:
-
-```shell
-git clone https://github.com/your/your-project.git
-cd your-project/
-packagemanager install
-```
-
-And state what happens step-by-step. If there is any virtual environment, local server or database feeder needed, explain here.
-
-### Building
-
-If your project needs some additional steps for the developer to build the
-project after some code changes, state them here. for example:
-
-```shell
-./configure
-make
-make install
-```
-
-Here again you should state what actually happens when the code above gets
-executed.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning.
-Roughly, the version number represents MAJOR.MINOR.PATCH where an increment is
-    MAJOR version when you make incompatible API changes,
-    MINOR version when you add functionality in a backwards-compatible manner, and
-    PATCH version when you make backwards-compatible bug fixes.
 
 ## Configuration
 
-### TO DO
-Here you should write what are all of the configurations a user can enter when
-using the project.
+Configuration is managed by setup.js but manual configuration can be done at ./config/default.json.
+In order for the LED to work need to indicate the port number it is connected to and the dimmensions of the wall in order to allow the proper display of images on the wall.
 
-## Tests
-
-### TO DO
-Describe and show how to run the tests with code examples.
-Explain what these tests test and why.
-
-```shell
-Give an example
-```
-
-## Style guide
-
-### TO DO
-Explain your code style and show how to check it.
 
 ## Licensing
 
