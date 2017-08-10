@@ -2,14 +2,24 @@ const config = require('config');
 const five = require('johnny-five');
 const LEDStrip = require('./ledstrip.js');
 const ledmanager = require('./ledmanager.js');
+const socket = require('socket.io-client')('http://localhost:3000');
+
+socket.on('connect', function() {
+  socket.emit('identifier', {type: 'device'});
+});
+
+socket.on('hello', function(data) {
+  console.log(data);
+});
 
 const board = new five.Board({
   port: config.get('port'),
 });
-
 const ledstrip = new LEDStrip(board);
 
 board.on('ready', function() {
+
+
   ledstrip.clear();
   ledstrip.setBrightness(3);
 

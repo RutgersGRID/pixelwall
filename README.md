@@ -3,7 +3,7 @@
 # PixelWall
 > An IoT interactive pixel wall implementation
 
-This project is an implementation of an LED wall controlled through the internet with the use of node, vue.js, johnny-five.js, and a microcontroller. This repository specifically is the code required for the physical microcontroller and LED strip in order to properly receive and display images from the server.
+This project is an implementation of an LED wall controlled through the internet with the use of node, vue.js, johnny-five.js, and a microcontroller. This repository holds the code required for setting up the physical microcontroller and LED strip in order to properly receive and display images from the server. For the code that handles the communication between the LED wall and the users, please go [here](https://github.com/RutgersUniversityVirtualWorlds/pixelserver).
 
 ## Installing / Getting started
 
