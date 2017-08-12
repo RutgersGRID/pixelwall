@@ -1,51 +1,55 @@
+/*
+The led strip is treated solely as a
+display. It expects images as input, and
+immediately displays whatever image it
+receives from a socket emit from the server.
+
+How long it displays images for is handled
+by the server by sending the next image whenever
+the current image's time is up.
+*/
+
 const config = require('config');
 const five = require('johnny-five');
 const LEDStrip = require('./ledstrip.js');
 const ledmanager = require('./ledmanager.js');
 const socket = require('socket.io-client')('http://localhost:3000');
 
-socket.on('connect', function() {
-  socket.emit('identifier', {type: 'device'});
-});
-
-socket.on('hello', function(data) {
-  console.log(data);
-});
+let boardReady = false;
 
 const board = new five.Board({
   port: config.get('port'),
+  repl: false
 });
 const ledstrip = new LEDStrip(board);
 
 board.on('ready', function() {
-
-
+  //set up for when board first turns on
+  boardReady = true;
   ledstrip.clear();
   ledstrip.setBrightness(3);
+  ledstrip.show();
+});
 
-  //TODO: Accept json data for images
-  let dispTime = 250; //in milliseconds
+socket.on('connect', function() {
+  //TODO: should probably add the dimmensions of the ledstrip
+  //to display dynamically on the front-end side.
+  socket.emit('identifier', {type: 'device'});
+});
 
-  let colorArray = [
-    [179, 70, 109], [243, 90, 120], [250, 135, 140], [243, 220, 176], [0, 0, 0],
-    [179, 70, 109], [243, 90, 120], [250, 135, 140], [0, 0, 0], [254, 222, 139],
-    [179, 70, 109], [243, 90, 120], [0, 0, 0], [243, 220, 176], [254, 222, 139],
-    [179, 70, 109], [0, 0, 0], [250, 135, 140], [243, 220, 176], [254, 222, 139],
-    [0, 0, 0], [243, 90, 120], [250, 135, 140], [243, 220, 176], [254, 222, 139]
-  ];
-  let colorArray1 = [
-    [179, 70, 109], [243, 90, 120], [250, 135, 140], [243, 220, 176], [254, 222, 139],
-    [179, 70, 109], [243, 90, 120], [250, 135, 140], [243, 220, 176], [254, 222, 139],
-    [179, 70, 109], [243, 90, 120], [250, 135, 140], [243, 220, 176], [254, 222, 139],
-    [179, 70, 109], [243, 90, 120], [250, 135, 140], [243, 220, 176], [254, 222, 139],
-    [179, 70, 109], [243, 90, 120], [250, 135, 140], [243, 220, 176], [254, 222, 139]
-  ];
-  ledmanager.pushImage(colorArray, dispTime);
-  ledmanager.pushImage(colorArray1, dispTime);
-
-  ledmanager.setImage(ledstrip);
-
-  //TODO: Loop eternally checking for 2 things
-  //1: new data pushed by server
-  //2: time for new image to be displayed
+socket.on('read', function(data) {
+  if(boardReady) {
+    switch(data.type) {
+      case 'single-pixel':
+        ledstrip.setPixelColor(data.pixel, data.color[0], data.color[1], data.color[2]);
+        ledstrip.show();
+        break;
+      case 'all-pixels':
+        ledmanager.pushImage(data.colors);
+        ledmanager.setImage(ledstrip);
+        break;
+      default:
+        break;
+    }
+  }
 });

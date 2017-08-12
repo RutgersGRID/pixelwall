@@ -1,15 +1,9 @@
-/* Imaging requires accepting arrays of RGB values
-and time duration for current 'frame'. Also requires
-a display manager. A queue of requests that are trigerred
-in the right order.
-*/
 const config = require('config');
-const linkedlist = require('linkedlist');
 
 let cols = Number(config.width);
 let rows = Number(config.height);
 
-let list = new linkedlist();
+let image = [];
 
 module.exports = {
   sortArray: function(array1D) {
@@ -30,44 +24,23 @@ module.exports = {
     //array should now have every other row flipped
     return newArray;
   },
-  pushImage: function(colorsArray, dispTime) {
+  pushImage: function(colorsArray) {
     let colors = module.exports.sortArray(colorsArray);
-    let data = [colors, dispTime];
-    list.push(data);
+    image = [colors];
 
-    return;
-  },
-  getNextImage: function() {
-    //retrieves the next available image and removes from head of list
-    if(list.head !== 'undefined') {
-      return list.shift();
-    }
-    else {
-      return false;
-    }
+    return true;
   },
   setImage: function(ledstrip) {
-    let image = module.exports.getNextImage();
-    if(image) {
+    if(image !== []) {
       let colors = image[0];
-      let time = image[1];
 
       for(var i = 0; i < cols*rows; i++) {
         ledstrip.setPixelColor(i, colors[i][0], colors[i][1], colors[i][2]);
       }
       ledstrip.show();
-
-      //seems like a temporary solution.
-      //possibly a deltaT function would be better? But
-      //then that requires constantly checking deltaT until
-      //value satisfied. Which might be okay if we are
-      //also periodically checking for new content
-      setTimeout(function() {
-        module.exports.setImage(ledstrip);
-      }, time);
     }
     else {
-      //case where no images left
+      //case where no images exists
     }
   }
 };
