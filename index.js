@@ -41,7 +41,8 @@ socket.on('read', function(data) {
   if(boardReady) {
     switch(data.type) {
       case 'single-pixel':
-        ledstrip.setPixelColor(data.pixel, data.color[0], data.color[1], data.color[2]);
+        let newPixelNum = ledmanager.sortPixel(data.pixel);
+        ledstrip.setPixelColor(newPixelNum, data.color[0], data.color[1], data.color[2]);
         ledstrip.show();
         break;
       case 'all-pixels':
