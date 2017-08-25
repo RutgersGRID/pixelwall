@@ -16,6 +16,13 @@ const ledmanager = require('./ledmanager.js');
 const socket = require('socket.io-client')('http://localhost:3000');
 
 let boardReady = false;
+let initialDesign = [
+  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
+  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
+  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
+  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
+  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255]
+];
 
 const board = new five.Board({
   port: config.get('port'),
@@ -28,13 +35,20 @@ board.on('ready', function() {
   boardReady = true;
   ledstrip.clear();
   ledstrip.setBrightness(3);
-  ledstrip.show();
+  ledmanager.pushImage(initialDesign);
+  ledmanager.setImage(ledstrip);
 });
 
+//must always send the initial design, even if all leds turned off
 socket.on('connect', function() {
-  //TODO: should probably add the dimmensions of the ledstrip
-  //to display dynamically on the front-end side.
-  socket.emit('identifier', {type: 'device'});
+  socket.emit('identifier', {
+    type: 'device',
+    dimmensions: {
+      width: Number(config.width),
+      height: Number(config.height)
+    },
+    boardState: initialDesign
+  });
 });
 
 socket.on('read', function(data) {

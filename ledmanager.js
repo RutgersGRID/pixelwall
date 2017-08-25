@@ -57,13 +57,14 @@ module.exports = {
     return true;
   },
   setImage: function(ledstrip) {
-    if(image !== []) {
+    if(image.length !== 0) {
       let colors = image[0];
 
       for(var i = 0; i < cols*rows; i++) {
         ledstrip.setPixelColor(i, colors[i][0], colors[i][1], colors[i][2]);
       }
       ledstrip.show();
+      image.length = 0;
     }
     else {
       //case where no images exists

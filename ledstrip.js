@@ -30,27 +30,23 @@ const Ledstrip = function(board) {
   //clear entire LED strip
   Ledstrip.prototype.clear = function() {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_CLEAR]);
-    console.log('ledstrip clear');
   };
   //displays current state of pixels on strip
   Ledstrip.prototype.show = function() {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_SHOW]);
-    console.log('ledstrip show');
   };
   //sets the color of a single pixel
   Ledstrip.prototype.setPixelColor = function(pixel, red, green, blue) {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_SET, pixel].concat(packColor(red, green, blue)));
-    console.log('ledstrip setPixelColor: r %d, g: %d, b:%d', red, green, blue);
+    console.log('ledstrip setPixelColor: r %d, g: %d, b:%d of pixel %d', red, green, blue, pixel);
   };
   //clears the color of a single pixel
   Ledstrip.prototype.clearPixelColor = function(pixel) {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_SET, pixel].concat(packColor(0, 0, 0)));
-    console.log('ledstrip clearPixelColor: pixel #%d', pixel);
   };
   //data is a unsigned int accepting vals between 0-255 for brightness
   Ledstrip.prototype.setBrightness = function(data) {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_BRIGHTNESS, data]);
-    console.log('ledstrip brightness');
   };
   //set all lights to 0x0000FF Blue
   Ledstrip.prototype.hello = function() {
