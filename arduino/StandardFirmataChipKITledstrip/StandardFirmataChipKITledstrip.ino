@@ -40,7 +40,7 @@
 #define CK_PIXEL_ALERT_HIGH 0x14 //20
 #define CK_PIXEL_ALERT_LOW 0x15 //21
 
-#define NUMPIXELS 25 // Number of LEDs in strip
+#define NUMPIXELS 128 // Number of LEDs in strip
 #define RED  0xFF0000
 #define GREEN  0x00FF00
 #define BLUE  0x0000FF
