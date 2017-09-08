@@ -36,6 +36,14 @@ The microcontroller should now be setup to receive commands directly from node.
 Configuration is managed by setup.js but manual configuration can be done at ./config/default.json.
 In order for the LED to work need to indicate the port number it is connected to and the dimmensions of the wall in order to allow the proper display of images on the wall.
 
+## Tests
+
+To run the tests simply type the following:
+
+```
+npm test
+```
+Tests can be found in ./tests/ and are built on mocha and chai.
 
 ## Licensing
 

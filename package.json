@@ -4,7 +4,7 @@
   "description": "An IoT interactive pixel wall implementation.",
   "main": "init.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha ./tests/"
   },
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
-    "tape": "^4.7.0"
+    "chai": "^4.1.2",
+    "mocha": "^3.5.0"
   }
 }

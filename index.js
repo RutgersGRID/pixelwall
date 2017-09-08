@@ -15,33 +15,15 @@ const LEDStrip = require('./ledstrip.js');
 const ledmanager = require('./ledmanager.js');
 const socket = require('socket.io-client')('http://localhost:3000');
 
+let cols = Number(config.width);
+let rows = Number(config.height);
+
 let boardReady = false;
-let initialDesign = [
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-  [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255], [255,255,255],
-];
+
+let initalDesign = [];
+for(let i = 0; i < cols*rows; i++) {
+  initialDesign.push([255,255,255]);
+}
 
 const board = new five.Board({
   port: config.get('port'),
@@ -56,6 +38,7 @@ board.on('ready', function() {
   ledstrip.setBrightness(3);
   ledmanager.pushImage(initialDesign);
   ledmanager.setImage(ledstrip);
+  ledstrip.show();
 });
 
 //TODO: Any way to check the current state of the lights? idts...
@@ -64,8 +47,8 @@ socket.on('connect', function() {
   socket.emit('identifier', {
     type: 'device',
     dimmensions: {
-      width: Number(config.width),
-      height: Number(config.height)
+      width: cols,
+      height: rows
     },
     boardState: initialDesign
   });
@@ -75,13 +58,14 @@ socket.on('read', function(data) {
   if(boardReady) {
     switch(data.type) {
       case 'single-pixel':
-        let newPixelNum = ledmanager.sortPixel(data.pixel);
+        let newPixelNum = ledmanager.sortPixel(data.pixel, cols, rows);
         ledstrip.setPixelColor(newPixelNum, data.color[0], data.color[1], data.color[2]);
         ledstrip.show();
         break;
       case 'all-pixels':
-        ledmanager.pushImage(data.colors);
-        ledmanager.setImage(ledstrip);
+        ledmanager.pushImage(data.colors, cols, rows);
+        ledmanager.setImage(ledstrip, cols, rows);
+        ledstrip.show();
         break;
       default:
         break;
