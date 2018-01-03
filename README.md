@@ -16,7 +16,7 @@ Note: you may want to configure the NUMPIXELS variable on StandardFirmataChipKIT
 Once the microcontroller is set up for communication, run the following at the root of the repository:
 
 ```shell
-npm init
+npm install 
 ```
 
 This should install all the dependencies required for the project to run.

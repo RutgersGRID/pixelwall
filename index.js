@@ -20,7 +20,7 @@ let rows = Number(config.height);
 
 let boardReady = false;
 
-let initalDesign = [];
+let initialDesign = [];
 for(let i = 0; i < cols*rows; i++) {
   initialDesign.push([255,255,255]);
 }
