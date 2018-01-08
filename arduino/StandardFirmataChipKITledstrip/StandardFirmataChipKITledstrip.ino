@@ -40,7 +40,7 @@
 #define CK_PIXEL_ALERT_HIGH 0x14 //20
 #define CK_PIXEL_ALERT_LOW 0x15 //21
 
-#define NUMPIXELS 128 // Number of LEDs in strip
+#define NUMPIXELS 512 //Number of LEDs in strip
 #define RED  0xFF0000
 #define GREEN  0x00FF00
 #define BLUE  0x0000FF
@@ -463,16 +463,15 @@ void ckCommand(byte command, byte argc, byte* argv) {
       strip.show();
       break;
     case CK_PIXEL_SET:
-      // This code is directly from the CircuitPlayground
-      // Set a NeoPixel to the specified RGB color.
-      // Expect: 1 byte pixel number, 4 bytes pixel RGB value (as 7-bit bytes)
-
-      if (argc >= 5) {
+      //argc consists of pixel index and rgb values
+      //first 2 bytes are the pixel index
+      //last 4 bytes are the rgb values
+      if (argc >= 6) {
         // Parse out the pixel number and R, G, B bytes.
-        uint8_t pixel = argv[0] & 0x7F;
-        uint8_t r = (argv[1] << 1) | ((argv[2] & 0x7F) >> 6);  // Red = 7 bits from byte 4 and 1 bit from byte 5
-        uint8_t g = ((argv[2] & 0x3F) << 2) | (((argv[3]) & 0x7F) >> 5);  // Green = 6 bits from byte 5 and 2 bits from byte 6
-        uint8_t b = ((argv[3] & 0x1F) << 3) | (((argv[4]) & 0x7F) >> 4);  // Blue = 5 bits from byte 6 and 3 bits from byte 7
+        uint16_t pixel = argv[0] + (argv[1] << 7);
+        uint8_t r = (argv[2] << 1) | ((argv[3] & 0x7F) >> 6);  // Red = 7 bits from byte 4 and 1 bit from byte 5
+        uint8_t g = ((argv[3] & 0x3F) << 2) | (((argv[4]) & 0x7F) >> 5);  // Green = 6 bits from byte 5 and 2 bits from byte 6
+        uint8_t b = ((argv[4] & 0x1F) << 3) | (((argv[5]) & 0x7F) >> 4);  // Blue = 5 bits from byte 6 and 3 bits from byte 7
         strip.setPixelColor(pixel, r, g, b);
       }
       break;
