@@ -35,14 +35,12 @@ board.on('ready', function() {
   //set up for when board first turns on
   boardReady = true;
   ledstrip.clear();
-  ledstrip.setBrightness(3);
-  ledmanager.pushImage(initialDesign);
-  ledmanager.setImage(ledstrip);
+  ledstrip.setBrightness(15);
+  ledmanager.pushImage(initialDesign, cols, rows);
+  ledmanager.setImage(ledstrip, cols, rows);
   ledstrip.show();
 });
 
-//TODO: Any way to check the current state of the lights? idts...
-//must always send the initial design, even if all leds turned off
 socket.on('connect', function() {
   socket.emit('identifier', {
     type: 'device',
