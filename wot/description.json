@@ -1,0 +1,112 @@
+{
+  "name": "Pixel Wall",
+  "type": "thing",
+  "description": "A web connected LED display",
+  "properties": {
+    "on": {
+      "description": "Wether the display is turned on",
+      "type": "boolean"
+    },
+    "brightness": {
+      "description": "The brightness of the LEDs",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 255
+    },
+    "width": {
+      "description": "The width, in number of LEDs, of the display",
+      "type": "number",
+      "minimum": 1
+    },
+    "height": {
+      "description": "The height, in number of LEDs, of the display",
+      "type": "number",
+      "minimum": 1
+    },
+    "pixelColors": {
+      "description": "The colors assigned to all the RGB LEDs",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "number",
+            "minimum": 0 
+          },
+          "RColor": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "GColor": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "BColor": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 255
+          }
+        }
+      }
+    }
+  },
+  "actions": {
+    "power": {
+      "description": "Turn on/off the LED display",
+      "input": {
+        "type": "boolean"
+      }
+    },
+    "setLed": {
+      "description": "Update the color of a single LED",
+      "input": {
+        "type": "object",
+        "properties": {
+          "index": {
+            "type": "number",
+            "minimum": 0 
+          },
+          "RColor": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "GColor": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 255
+          },
+          "BColor": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 255
+          }
+        }
+      } 
+    },
+    "setBrightness": {
+      "description": "Set the brightness of the LED display",
+      "input": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 255
+      }
+    },
+    "setWidth": {
+      "description": "Set the width of the LED display",
+      "input": {
+        "type": "number",
+        "minimum": 0
+      }
+    }, 
+    "setHeight": {
+      "description": "Set the height of the LED display",
+      "input": {
+        "type": "number",
+        "minimum": 0
+      }
+    }
+  }
+}
