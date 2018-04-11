@@ -3,4 +3,10 @@ module.exports = function(app) {
 
   app.route('/things/pixelwall')
     .get(controller.description);
+
+  app.route('/things/pixelwall/:attribute')
+    .get(controller.attribute);
+
+  app.route('/things/pixelwall/properties/:property')
+    .get(controller.property);
 };
