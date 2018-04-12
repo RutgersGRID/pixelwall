@@ -9,7 +9,7 @@ module.exports = {
     })
   },
   updateConfigFile: function(port, dimmensions, callback) {
-    let file = require('./default.json');
+    let file = require('../default.json');
     file.port = port;
     file.width = dimmensions.width;
     file.height = dimmensions.height;

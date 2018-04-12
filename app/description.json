@@ -1,0 +1,31 @@
+{
+  "name": "Pixel Wall",
+  "type": "thing",
+  "description": "A web connected LED display",
+  "properties": {
+    "on": {
+      "description": "Wether the display is turned on",
+      "type": "boolean",
+      "href": "/things/pixelwall/properties/on"
+    },
+    "brightness": {
+      "description": "The brightness of the LEDs",
+      "type": "number",
+      "minimum": 0,
+      "maximum": 255,
+      "href": "/things/pixelwall/properties/brightness"
+    },
+    "width": {
+      "description": "The width, in number of LEDs, of the display",
+      "type": "number",
+      "minimum": 1,
+      "href": "/things/pixelwall/properties/width"
+    },
+    "height": {
+      "description": "The height, in number of LEDs, of the display",
+      "type": "number",
+      "minimum": 1,
+      "href": "/things/pixelwall/properties/height"
+    }
+  }
+}

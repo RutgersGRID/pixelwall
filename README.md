@@ -1,4 +1,4 @@
-![Pixel Wall Logo](./images/PixelWallLogo.png)
+![Pixel Wall Logo](./public/img/PixelWallLogo.png)
 
 # PixelWall
 > An IoT interactive pixel wall implementation

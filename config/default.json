@@ -1,6 +1,6 @@
 {
-  "port": "COM3",
+  "port": "COM7",
   "ip": "",
-  "width": 32,
-  "height": 16 
+  "width": 10,
+  "height": 10
 }
