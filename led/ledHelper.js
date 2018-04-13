@@ -1,18 +1,16 @@
+//helper functions that extend the functionality of our board
 const config = require('config');
-
-let image = [];
 
 module.exports = {
   sortPixel: function(pixelNum, cols, rows) {
-    //return the true position of the pixel being sent in
-
+    //return the true position of the pixel being sent in.
     //loop through all the odd rows
     for(var i = cols; i < cols*rows; i += 2*cols) {
       //if pixelNum has been passed, was in an even row, just return number
       if(pixelNum < i) {
         return pixelNum;
       }
-      //is the current ODD row containing our pixelNum
+      //is the current ODD row containing our pixelNum?
       if(pixelNum >= i && pixelNum < i + cols) {
         for(var j = i; j < Math.floor(cols/2) + i; j += 1) {
           let last = (i+cols)-(1+(j-i));
@@ -48,12 +46,20 @@ module.exports = {
     //array should now have every other row flipped
     return newArray;
   },
-  pushImage: function(colorsArray, cols, rows) {
-    let colors = module.exports.sortArray(colorsArray, cols, rows);
-    image = [colors];
-
-    return true;
-  },
+  setImage: function(colorsArray, cols, rows) {
+    let colors = module.exports.sortArray(colorsArray, cols, row);
+    if(colors <= 0) {
+      return false;
+    }
+    else {
+      console.log(colors);
+      /*
+      for(var i = 0; i < cols*rows; i++) {
+        ledstrip.setPixelColor(i, colors[i][0], colors[i][1], colors[i][2]);
+      }
+      */
+    }
+  } /*
   setImage: function(ledstrip, cols, rows) {
     if(image.length !== 0) {
       let colors = image[0];
@@ -68,5 +74,5 @@ module.exports = {
       //case where no images exists
       return false;
     }
-  }
+  } */
 };

@@ -1,7 +1,5 @@
-/*
- * ledstrip.js
- * ledstrip sysex library
- */
+let ledHelper = require('./ledHelper.js');
+
 const CK_COMMAND = 0x40;
 const CK_PIXEL_SET = 0x10;
 const CK_PIXEL_SHOW = 0x11;
@@ -12,7 +10,6 @@ const CK_PIXEL_ALERT_LOW = 0x15;
 
 const packPixel = function(pixel) {
   //filter least significant bit (2^7 values)
-  console.log(pixel);
   const lsb = pixel & 0x7F;
   //shift right 7 bits, giving us vals from 2^8 to 2^14
   const msb = pixel >> 7;
@@ -74,17 +71,14 @@ const Ledstrip = function(board) {
   //set all lights to 0x0000FF Blue
   Ledstrip.prototype.hello = function() {
     board.sysexCommand([CK_COMMAND]);
-    console.log('ledstrip hello');
   };
   //set all lights to ICEBLUE 0x000055
   Ledstrip.prototype.alertLOW = function() {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_ALERT_LOW]);
-    console.log('ledstrip alert low');
   };
   //set all lights to RED 0xFF0000
   Ledstrip.prototype.alertHIGH = function() {
     board.sysexCommand([CK_COMMAND, CK_PIXEL_ALERT_HIGH]);
-    console.log('ledstrip alert high');
   };
 };
 module.exports = Ledstrip;
