@@ -1,6 +1,6 @@
 let five = require('johnny-five');
 let config = require('config');
-let LEDStrip = require('../led/ledStrip.js');
+let Leds = require('../led/LedsHandlerClass.js');
 
 module.exports = function() {
   let device = {};
@@ -18,7 +18,7 @@ module.exports = function() {
     height: Number(config.get('height'))
   }
 
-  device.ledStrip = new LEDStrip(device.board);
+  device.leds = new Leds(device.board);
 
   //set the handler for the led strip
   return device;
