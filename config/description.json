@@ -26,6 +26,17 @@
       "type": "number",
       "minimum": 1,
       "href": "/things/pixelwall/properties/height"
+    },
+    "batch": {
+      "description": "How many commands are processed by the microcontroller at once. Used for batch processes that send many commands in one call. Bigger value means greater power consumption, however commands take less time to process",
+      "type": "number",
+      "minimum": 1,
+      "href": "/things/pixelwall/properties/batch"
+    },
+    "delay": {
+      "description": "Delay between batch commands. Greater delay means less power consumption, however commands will take a longer time to process",
+      "type": "number",
+      "href": "/things/pixelwall/properties/delay"
     }
   }
 }

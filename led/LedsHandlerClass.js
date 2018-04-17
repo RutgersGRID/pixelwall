@@ -54,30 +54,29 @@ class LedsHandlerClass extends Sysex {
       return false;
     }
     else {
-      // want to show() after every 30 commands.
-      // and every subsequent set of 30 commands is delayed by 50 milli
       let state = this;
-      let throttle = 0;
+      console.log(state.properties);
       let availablePixels = true;
-      let batch = 30;
-      let delay = 50;
+      let throttle = 0;
+
+      //want to show() after every state.batch worth of commands
+      //with a delay applied for subsequent batches
       while(availablePixels) {
-        let i = throttle * batch;
+        let i = throttle * state.properties.batch;
         if(i >= cols*rows) {
           availablePixels = false;
           continue;
         }
         setTimeout(function() {
-          for(let j = i; j < i + batch; j++) {
+          for(let j = i; j < i + state.properties.batch; j++) {
             //if exceeding the number of available pixels, break
             if(j >= cols*rows) {
               break;
             }
             state.setPixelColor(j, colors[j][0], colors[j][1], colors[j][2]);
           }
-          //after setting the 30 commands, show()
           state.show();
-        }, throttle*delay);
+        }, throttle*state.properties.delay);
         throttle = throttle + 1;
       }
     } 

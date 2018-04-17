@@ -1,6 +1,7 @@
 class Sysex {
-  constructor(board) {
+  constructor(board, properties) {
     this.board = board;
+    this.properties = properties;
 
     this.CK_COMMAND = 0x40;
     this.CK_PIXEL_SET = 0x10;
