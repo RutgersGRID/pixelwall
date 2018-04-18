@@ -24,8 +24,16 @@ module.exports = function() {
 
   device.setup = function() {
     let initialDesign = [];
-    for(let i = 0; i < device.properties.width*device.properties.height; i++) {
-      initialDesign.push([255, 255, 255]);
+
+    if(device.properties.on) {
+      for(let i = 0; i < device.properties.width*device.properties.height; i++) {
+        initialDesign.push([255, 255, 255]);
+      }
+    }
+    else {
+      for(let i = 0; i < device.properties.width*device.properties.height; i++) {
+        initialDesign.push([0, 0, 0]);
+      }
     }
 
     device.leds.clear();

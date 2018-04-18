@@ -55,7 +55,6 @@ class LedsHandlerClass extends Sysex {
     }
     else {
       let state = this;
-      console.log(state.properties);
       let availablePixels = true;
       let throttle = 0;
 

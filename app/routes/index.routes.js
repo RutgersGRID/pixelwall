@@ -1,8 +1,8 @@
-module.exports = function(app, board) {
+module.exports = function(app, device) {
   let controller = require('../controllers/index.controllers.js');
 
-  let addBoard = function(req, res, next) {
-    req.board = board;
+  let addDevice = function(req, res, next) {
+    req.device = device;
     next();
   }
 
@@ -17,5 +17,8 @@ module.exports = function(app, board) {
   //pass board object as part of req in our own middleware
   //return values of property
   app.route('/things/pixelwall/properties/:property')
-    .get(addBoard, controller.property);
+    .get(addDevice, controller.property);
+
+  app.route('/things/pixelwall/properties/on')
+    .put(addDevice, controller.on);
 };
