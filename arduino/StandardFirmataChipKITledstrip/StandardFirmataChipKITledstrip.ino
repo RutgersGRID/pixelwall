@@ -43,8 +43,8 @@
 #define NUMPIXELS 512 //Number of LEDs in strip
 #define RED  0xFF0000
 #define GREEN  0x00FF00
-#define BLUE  0x0000FF
 #define ICEBLUE 0x000055
+#define WHITE  0xFFFFFF
 
 #define I2C_WRITE                   B00000000
 #define I2C_READ                    B00001000
@@ -247,11 +247,11 @@ void checkDigitalInputs(void)
    contact DOTSTAR strip
    group the dotstar functions to act as a callback from firmata commands
 */
-void dotstarHello() {
+void dotstarOn() {
   strip.clear();
   uint32_t frame[NUMPIXELS];
   for (int ii = 0; ii < NUMPIXELS; ii++) {
-    frame[ii] = BLUE; //initialize all to BLUE
+    frame[ii] = WHITE; //initialize all to white 
     strip.setPixelColor(ii, frame[ii]);
   }
 }
@@ -514,7 +514,7 @@ void sysexCallback(byte command, byte argc, byte *argv)
   switch (command) {
     case CK_COMMAND:
       if (argc < 1) {
-        dotstarHello();
+        dotstarOn();
         return;
       }
       else {

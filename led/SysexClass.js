@@ -46,6 +46,11 @@ class Sysex {
     return data;
   }
 
+  //set all lights to 0xFFFFFF
+  on() {
+    this.board.sysexCommand([this.CK_COMMAND]);
+  }
+
   //clear entire LED strip
   clear() {
     this.board.sysexCommand([this.CK_COMMAND, this.CK_PIXEL_CLEAR]);
@@ -74,11 +79,6 @@ class Sysex {
   //data is an unsigned int accepting vals between 0-255 for brightness
   setBrightness(data) {
     this.board.sysexCommand([this.CK_COMMAND, this.CK_PIXEL_BRIGHTNESS, data]);
-  }
-
-  //set all lights to 0x0000FF Blue
-  hello() {
-    this.board.sysexCommand([this.CK_COMMAND]);
   }
 
   //set all lights to ICEBLUE 0x000055

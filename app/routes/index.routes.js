@@ -21,4 +21,7 @@ module.exports = function(app, device) {
 
   app.route('/things/pixelwall/properties/on')
     .put(addDevice, controller.on);
+
+  app.route('/things/pixelwall/properties/brightness')
+    .put(addDevice, controller.brightness);
 };

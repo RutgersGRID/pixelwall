@@ -23,22 +23,9 @@ module.exports = function() {
   device.leds = new Leds(device.board, device.properties);
 
   device.setup = function() {
-    let initialDesign = [];
-
-    if(device.properties.on) {
-      for(let i = 0; i < device.properties.width*device.properties.height; i++) {
-        initialDesign.push([255, 255, 255]);
-      }
-    }
-    else {
-      for(let i = 0; i < device.properties.width*device.properties.height; i++) {
-        initialDesign.push([0, 0, 0]);
-      }
-    }
-
     device.leds.clear();
     device.leds.setBrightness(device.properties.brightness);
-    device.leds.setImage(initialDesign, device.properties.width, device.properties.height);
+    device.leds.on();
     device.leds.show();
   }
 

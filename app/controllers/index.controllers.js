@@ -29,7 +29,8 @@ exports.on = function(req, res) {
       req.device.properties.on = req.body.on;
       //set property on device
       if(req.body.on) {
-        //set device to on state. Need to set this in Firmata code
+        req.device.leds.on();
+        req.device.leds.show();
       }
       else {
         req.device.leds.clear();
@@ -45,3 +46,29 @@ exports.on = function(req, res) {
   res.header("Content-Type",'application/json');
   res.send(JSON.stringify(onProperty, null, 4));
 };
+
+exports.brightness = function(req, res) {
+
+  if(typeof req.body.brightness === 'number') {
+    if(req.body.brightness < 0) {
+      req.device.leds.setBrightness(0);
+      req.device.properties.brightness = 0;
+    }
+    else if(req.body.brightness > 255) {
+      req.device.leds.setBrightness(255);
+      req.device.properties.brightness = 255;
+    }
+    else {
+      req.device.leds.setBrightness(req.body.brightness);
+      req.device.properties.brightness = req.body.brightness;
+    }
+    req.device.leds.show();
+  }
+
+  let brightnessProperty = {
+    brightness: req.device.properties.brightness
+  }
+
+  res.header("Content-Type",'application/json');
+  res.send(JSON.stringify(brightnessProperty, null, 4));
+}
