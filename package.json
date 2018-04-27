@@ -29,6 +29,7 @@
     "file-exists": "^4.0.0",
     "johnny-five": "^0.11.3",
     "linkedlist": "^1.0.1",
+    "local-ipv4-address": "0.0.2",
     "prompt": "^1.0.0",
     "socket.io-client": "^2.0.3",
     "winston": "^2.3.1"
