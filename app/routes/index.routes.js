@@ -2,7 +2,6 @@ module.exports = function(app, device) {
   let controller = require('../controllers/index.controllers.js');
 
   let addDevice = function(req, res, next) {
-    console.log('request received');
     req.device = device;
     next();
   }

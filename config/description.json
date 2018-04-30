@@ -6,37 +6,37 @@
     "on": {
       "description": "Wether the display is turned on",
       "type": "boolean",
-      "href": "/things/pixelwall/properties/on"
+      "href": "/properties/on"
     },
     "brightness": {
       "description": "The brightness of the LEDs",
       "type": "number",
       "minimum": 0,
       "maximum": 255,
-      "href": "/things/pixelwall/properties/brightness"
+      "href": "/properties/brightness"
     },
     "width": {
       "description": "The width, in number of LEDs, of the display",
       "type": "number",
       "minimum": 1,
-      "href": "/things/pixelwall/properties/width"
+      "href": "/properties/width"
     },
     "height": {
       "description": "The height, in number of LEDs, of the display",
       "type": "number",
       "minimum": 1,
-      "href": "/things/pixelwall/properties/height"
+      "href": "/properties/height"
     },
     "batch": {
       "description": "How many commands are processed by the microcontroller at once. Used for batch processes that send many commands in one call. Bigger value means greater power consumption, however commands take less time to process",
       "type": "number",
       "minimum": 1,
-      "href": "/things/pixelwall/properties/batch"
+      "href": "/properties/batch"
     },
     "delay": {
       "description": "Delay between batch commands. Greater delay means less power consumption, however commands will take a longer time to process",
       "type": "number",
-      "href": "/things/pixelwall/properties/delay"
+      "href": "/properties/delay"
     }
   }
 }
