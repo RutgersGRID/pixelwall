@@ -16,6 +16,7 @@ module.exports = function() {
     brightness: 5,
     width: Number(config.get('width')),
     height: Number(config.get('height')),
+    led: '{"index": 0, "color": {"r": 255, "g": 255, "b": 255 }}',
     batch: 25,
     delay: 50
   }

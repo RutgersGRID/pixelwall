@@ -27,6 +27,11 @@
       "minimum": 1,
       "href": "/properties/height"
     },
+    "led": {
+      "description": "The LED to edit, and color, in JSON format of {index: number, color: {r: number, g: number, b: number}}",
+      "type": "string",
+      "href": "/properties/led"
+    },
     "batch": {
       "description": "How many commands are processed by the microcontroller at once. Used for batch processes that send many commands in one call. Bigger value means greater power consumption, however commands take less time to process",
       "type": "number",
@@ -38,5 +43,11 @@
       "type": "number",
       "href": "/properties/delay"
     }
-  }
+  },
+  "links": [
+    {
+      "rel": "properties",
+      "href": "/properties"
+    }
+  ]
 }

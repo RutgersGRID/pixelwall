@@ -72,3 +72,22 @@ exports.brightness = function(req, res) {
   res.header("Content-Type",'application/json');
   res.send(JSON.stringify(brightnessProperty, null, 4));
 }
+
+exports.led = function(req, res) {
+  if(typeof req.body.led === 'string') {
+    let obj = JSON.parse(req.body.led);
+    let device = req.device;
+    let leds = req.device.leds;
+    let trueIndex = leds.sortPixel(obj.index, device.properties.width, device.properties.height);
+
+    leds.setPixelColor(trueIndex, obj.color.r, obj.color.g, obj.color.b);
+    leds.show();
+  }
+
+  let ledProperty = {
+    led: req.body.led
+  }
+
+  res.header("Content-Type",'application/json');
+  res.send(JSON.stringify(ledProperty, null, 4));
+}

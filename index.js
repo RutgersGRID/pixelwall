@@ -1,6 +1,7 @@
 let device = require('./config/device.js')();
 let app = require('./config/express.js')(device);
 let server = require('http').Server(app);
+
 let dnssd = require('dnssd');
 let localIPv4Address = require('local-ipv4-address');
 

@@ -24,4 +24,7 @@ module.exports = function(app, device) {
 
   app.route('/properties/brightness')
     .put(addDevice, controller.brightness);
+
+  app.route('/properties/led')
+    .put(addDevice, controller.led);
 };
