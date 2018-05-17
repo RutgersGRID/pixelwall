@@ -22,7 +22,6 @@ exports.property = function(req, res) {
 };
 
 exports.on = function(req, res) {
-
   if(typeof req.body.on === 'boolean') {
     if(req.device.properties.on !== req.body.on) {
       //update object properties

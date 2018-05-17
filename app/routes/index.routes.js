@@ -14,10 +14,9 @@ module.exports = function(app, device) {
   app.route('/:attribute')
     .get(controller.attribute);
 
-  //pass board object as part of req in our own middleware
   //return values of property
   app.route('/properties/:property')
-    .get(addDevice, controller.property);
+    .get(addDevice, controller.property)
 
   app.route('/properties/on')
     .put(addDevice, controller.on);
