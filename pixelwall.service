@@ -1,0 +1,15 @@
+[Unit]
+Description=pixelwall daemon
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/pixelwall
+ExecStart=/home/pi/pixelwall/pixelwall.sh
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
