@@ -17,6 +17,7 @@ module.exports = function() {
     width: Number(config.get('width')),
     height: Number(config.get('height')),
     led: '{"index": 0, "color": {"r": 255, "g": 255, "b": 255 }}',
+    link: 'PLACE.LINK.HERE',
     batch: 25,
     delay: 50
   }

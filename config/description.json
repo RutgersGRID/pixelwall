@@ -42,6 +42,11 @@
       "description": "Delay between batch commands. Greater delay means less power consumption, however commands will take a longer time to process",
       "type": "number",
       "href": "/properties/delay"
+    },
+    "link": {
+      "description": "Link to an external application that controls this device",
+      "type": "string",
+      "href": "/properties/link"
     }
   },
   "links": [
